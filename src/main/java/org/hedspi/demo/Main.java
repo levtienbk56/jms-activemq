@@ -12,14 +12,15 @@ import javax.jms.TextMessage;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 public class Main {
-	// Địa chỉ máy cài ActiveMQ với cổng mặc định là 61616
 	static String url = "tcp://localhost:61616";
 	private static Scanner scanner;
+	private static boolean exit = false;
+	private static Connection connection;
 
 	public static void main(String[] args) throws JMSException {
 		// Getting JMS connection from the server and starting it
 		ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(url);
-		Connection connection = connectionFactory.createConnection();
+		connection = connectionFactory.createConnection();
 		connection.start();
 
 		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
@@ -37,14 +38,18 @@ public class Main {
 		Thread thread1 = new Thread(new Runnable() {
 			public void run() {
 				try {
-					while (true) {
+					while (!exit) {
+						// scan message content
 						String msg = scanner.nextLine();
 						if (msg.toLowerCase().equals("exit")) {
 							System.out.println("You entered exit!");
+							exit = true;
 							scanner.close();
+							producer.send("left conversation!");
 							break;
 						}
 
+						// send message
 						producer.send(msg);
 					}
 				} catch (JMSException e) {
@@ -57,19 +62,20 @@ public class Main {
 		Thread thread2 = new Thread(new Runnable() {
 			public void run() {
 				try {
-					while (true) {
+					while (!exit) {
 						Message message = consumer.getMessageConsumer().receive();
+						if (exit) {
+							connection.close();
+							break;
+						}
 
+						// there are so much messageType, need to be sure this
+						// is a TextMessage
 						if (message instanceof TextMessage) {
 							TextMessage textMessage = (TextMessage) message;
 							String from = textMessage.getStringProperty("from");
-							String to = textMessage.getStringProperty("to");
-							
-							if(from.equals(consumer.getFrom())){
-								System.out.println(from + ":\t" + textMessage.getText());
-							}else if(to.equals(consumer.getFrom())){
-								System.out.println(from + ":\t" + textMessage.getText());
-							}
+
+							System.out.println(from + ":\t" + textMessage.getText());
 						}
 					}
 				} catch (JMSException e) {
