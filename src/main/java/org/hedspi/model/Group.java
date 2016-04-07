@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * this class define list friends 
+ * this class define list friends
+ * 
  * @author trungtran.vn
  *
  */
@@ -16,13 +17,14 @@ public class Group {
 
 	/**
 	 * create list User from list of username
+	 * 
 	 * @param listName
-	 *            list of user name, need to split 
+	 *            list of user name, need to split
 	 */
 	public Group(String listName) {
 		String[] arr = listName.trim().split(",");
 		for (int i = 0; i < arr.length; i++) {
-			User u = new User(arr[i], "");
+			User u = new User(arr[i].trim(), "");
 			users.add(u);
 		}
 	}

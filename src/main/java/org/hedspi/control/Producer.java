@@ -1,4 +1,4 @@
-package org.hedspi.demo;
+package org.hedspi.control;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
